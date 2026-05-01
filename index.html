@@ -25,8 +25,23 @@
     border-radius:18px;padding:7px 14px;font-size:1.05rem;
     backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   }
+  .hud-left{display:flex;flex-direction:column;gap:6px;}
   #score   { color:#ffd700; }
   #lives   { color:#ff7675; }
+  .bullet-pill{
+    color:#ff44ff;font-size:.9rem;
+    background:rgba(0,0,0,.55);border-color:rgba(255,68,255,.35);
+    transition:color .25s,border-color .25s,background .25s;
+  }
+  .bullet-pill.lv2{color:#ff9f43;border-color:rgba(255,159,67,.4);}
+  .bullet-pill.lv3{color:#ff6b6b;border-color:rgba(255,107,107,.4);}
+  .bullet-pill.lv4{color:#a29bfe;border-color:rgba(162,155,254,.45);}
+  .bullet-pill.lv5{
+    background:linear-gradient(135deg,#ff44ff,#ffd700);
+    color:#fff;border-color:#fff;
+    animation:lv5Glow 1.4s ease-in-out infinite;
+  }
+  @keyframes lv5Glow{0%,100%{box-shadow:0 0 0 0 rgba(255,68,255,.6);}50%{box-shadow:0 0 0 12px rgba(255,68,255,0);}}
   #combo   {
     position:fixed;top:60px;left:50%;transform:translateX(-50%);
     font-size:2.2rem;color:#ffeb3b;text-shadow:0 0 18px #ff6b6b,0 4px 0 #c0392b;
@@ -171,7 +186,10 @@
 
 <!-- HUD -->
 <div id="hud">
-  <div class="hud-pill" id="score">⭐ 0</div>
+  <div class="hud-left">
+    <div class="hud-pill" id="score">⭐ 0</div>
+    <div class="hud-pill bullet-pill" id="bulletInd">たま Lv1</div>
+  </div>
   <div class="hud-pill" id="lives">❤️ ❤️ ❤️</div>
 </div>
 <div id="combo"></div>
@@ -245,6 +263,24 @@ const GROUP_COLORS = {
   7:['#ffeaa7','#fdcb6e'], 8:['#81ecec','#00cec9'], 9:['#ff9ff3','#feca57'],
   10:['#48dbfb','#341f97'],
 };
+
+// ─── BULLET EVOLUTION ───────────────────────────────────────
+// コンボ数に応じて弾が進化する
+const BULLET_LEVELS = [
+  // [minCombo, fireMs, count, spread(rad), size, speed, baseColor, pierce, dmg]
+  { combo:0,  fireMs:320, count:1, spread:0,    size:8,  speed:720, color:'#ffeb3b', pierce:0, dmg:1 },
+  { combo:3,  fireMs:300, count:2, spread:0,    size:9,  speed:760, color:'#ff9f43', pierce:0, dmg:1 },
+  { combo:6,  fireMs:280, count:3, spread:0.18, size:10, speed:800, color:'#ff6b6b', pierce:0, dmg:1 },
+  { combo:10, fireMs:250, count:5, spread:0.30, size:11, speed:840, color:'#a29bfe', pierce:0, dmg:1 },
+  { combo:15, fireMs:200, count:5, spread:0.42, size:13, speed:920, color:'rainbow', pierce:2, dmg:2 },
+];
+function getBulletLv(c){
+  let lv = 0;
+  for(let i=0;i<BULLET_LEVELS.length;i++){
+    if(c >= BULLET_LEVELS[i].combo) lv = i;
+  }
+  return lv; // 0..4 (表示は +1)
+}
 
 // Words for challenge mode (all chars are basic hiragana, audio file = w_<sk>.m4a)
 const WORDS = [
@@ -369,6 +405,16 @@ function sfx(type){
         g.gain.setValueAtTime(.22,t);
         g.gain.exponentialRampToValueAtTime(.001,t+.35);
         o.start(t); o.stop(t+.35);
+      });
+    }else if(type==='levelup'){
+      [[660,0],[880,.07],[1100,.14],[1320,.21]].forEach(([f,d])=>{
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type='square'; o.frequency.value=f;
+        const t=ctx.currentTime+d;
+        g.gain.setValueAtTime(.12,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.16);
+        o.start(t); o.stop(t+.16);
       });
     }else if(type==='zap'){
       const o=ctx.createOscillator(),g=ctx.createGain();
@@ -531,6 +577,11 @@ function updateHUD(){
   document.getElementById('score').textContent = `⭐ ${score}`;
   const heartCount = Math.max(0, Math.min(5, lives));
   document.getElementById('lives').textContent = '❤️'.repeat(heartCount) + '🖤'.repeat(Math.max(0,3-heartCount));
+  // 弾レベル
+  const lv = getBulletLv(combo) + 1;
+  const bp = document.getElementById('bulletInd');
+  bp.textContent = `たま Lv${lv}` + (lv===5 ? ' 🌈' : lv>=4 ? ' ✨' : '');
+  bp.className = 'hud-pill bullet-pill' + (lv>1 ? ` lv${lv}` : '');
 }
 
 function showCombo(){
@@ -734,10 +785,12 @@ function update(dt){
   ship.x += (ship.targetX - ship.x) * Math.min(1, dt*16);
   ship.y = H - 90;
 
-  // Auto-shoot
+  // Auto-shoot (弾レベルに応じてパターン変化)
   const now = performance.now();
-  if(now - lastShot > 320){
-    bullets.push({ x:ship.x, y:ship.y - 30, vx:0, vy:-720 });
+  const lvIdx = getBulletLv(combo);
+  const cfg = BULLET_LEVELS[lvIdx];
+  if(now - lastShot > cfg.fireMs){
+    fireShot(cfg, lvIdx);
     lastShot = now;
     sfx('shoot');
   }
@@ -772,6 +825,20 @@ function update(dt){
     }
     b.x += b.vx*dt;
     b.y += b.vy*dt;
+    // レインボー弾：色シフト＋トレイル
+    if(b.rainbow){
+      b.color = `hsl(${(performance.now()/4) % 360},100%,60%)`;
+      if(Math.random() < 0.65){
+        particles.push({
+          x: b.x + (Math.random()-.5)*4,
+          y: b.y + 4 + Math.random()*6,
+          vx: (Math.random()-.5)*20,
+          vy: 30 + Math.random()*30,
+          life:.45, r:3+Math.random()*2,
+          color: `hsl(${(performance.now()/4 + Math.random()*60) % 360},100%,60%)`,
+        });
+      }
+    }
     if(b.y < -30 || b.y > H+30 || b.x < -30 || b.x > W+30) bullets.splice(i,1);
   }
 
@@ -814,13 +881,23 @@ function update(dt){
     const b = bullets[i];
     for(let j=enemies.length-1;j>=0;j--){
       const e = enemies[j];
+      // 貫通弾：すでに当てた敵はスキップ
+      if(b.hitSet && b.hitSet.has(e)) continue;
       const dx = b.x - e.x, dy = b.y - e.y;
       const r = e.r + (b.homing?6:0);
       if(dx*dx + dy*dy < r*r){
-        bullets.splice(i,1);
-        const killed = damageEnemy(e, b.homing ? 3 : 1);
+        const dmg = b.homing ? 3 : (b.dmg || 1);
+        const killed = damageEnemy(e, dmg);
         if(killed) enemies.splice(j,1);
-        continue outer;
+        // 貫通：弾を残し、回数を消費
+        if(b.pierce && b.pierce > 0){
+          b.hitSet.add(e);
+          b.pierce--;
+          if(b.pierce <= 0) { bullets.splice(i,1); continue outer; }
+        }else{
+          bullets.splice(i,1);
+          continue outer;
+        }
       }
     }
   }
@@ -871,7 +948,59 @@ function update(dt){
   if(shake>0) shake = Math.max(0, shake - 60*dt);
   if(combo>0){
     comboTimer -= dt;
-    if(comboTimer<=0) combo = 0;
+    if(comboTimer<=0) { combo = 0; updateHUD(); }
+  }
+}
+
+// ─── 弾レベルに応じた発射 ─────────────────────────────────
+function fireShot(cfg, lvIdx){
+  const baseY = ship.y - 30;
+  if(cfg.count === 2){
+    // 平行2連
+    bullets.push(makeBullet(ship.x-14, baseY, 0, -cfg.speed, cfg, lvIdx, 0));
+    bullets.push(makeBullet(ship.x+14, baseY, 0, -cfg.speed, cfg, lvIdx, 1));
+  }else{
+    // 中心 + 扇形に拡散
+    const half = (cfg.count - 1) / 2;
+    for(let i=0;i<cfg.count;i++){
+      const a = -Math.PI/2 + (i - half) * cfg.spread;
+      bullets.push(makeBullet(ship.x, baseY,
+        Math.cos(a)*cfg.speed, Math.sin(a)*cfg.speed, cfg, lvIdx, i));
+    }
+  }
+}
+function makeBullet(x, y, vx, vy, cfg, lvIdx, idx){
+  const isRainbow = cfg.color === 'rainbow';
+  return {
+    x, y, vx, vy,
+    size: cfg.size,
+    color: isRainbow ? `hsl(${(idx*72 + performance.now()/8) % 360},100%,60%)` : cfg.color,
+    rainbow: isRainbow,
+    pierce: cfg.pierce,
+    dmg: cfg.dmg,
+    lv: lvIdx + 1,
+    hitSet: cfg.pierce ? new Set() : null,
+  };
+}
+
+// ─── 弾レベルアップ通知 ───────────────────────────────────
+function showBulletLevelUp(lv){
+  popups.push({
+    x: ship.x, y: ship.y - 110,
+    text: `たま Lv${lv} UP! ✨`,
+    life: 1.6, big: true,
+    color: ['#ffeb3b','#ff9f43','#ff6b6b','#a29bfe','#ff44ff'][lv-1] || '#fff',
+  });
+  sfx('levelup');
+  // 紙吹雪っぽいパーティクル
+  for(let i=0;i<24;i++){
+    const a = Math.random()*Math.PI*2, sp=120+Math.random()*200;
+    particles.push({
+      x: ship.x, y: ship.y - 30,
+      vx: Math.cos(a)*sp, vy: Math.sin(a)*sp - 100,
+      life:.7, r:3+Math.random()*2,
+      color: `hsl(${Math.random()*360},100%,60%)`,
+    });
   }
 }
 
@@ -920,7 +1049,10 @@ function onKill(e){
   // Word challenge progress
   tryFillSlot(e.c);
 
+  const oldLv = getBulletLv(combo);
   combo++;
+  const newLv = getBulletLv(combo);
+  if(newLv > oldLv) showBulletLevelUp(newLv + 1);
   comboTimer = 2.4;
   const base = e.boss ? 80 : 10;
   const gained = base * combo;
@@ -1048,26 +1180,37 @@ function draw(){
   });
   ctx.globalAlpha = 1;
 
-  // Bullets
+  // Bullets — レベルに応じた見た目
   bullets.forEach(b=>{
     const col = b.color || '#ffeb3b';
-    ctx.shadowBlur=14; ctx.shadowColor=col;
+    const sz  = b.size || 8;
+    ctx.shadowBlur = b.rainbow ? 22 : (b.lv >= 4 ? 18 : 14);
+    ctx.shadowColor = col;
     if(b.homing){
       const g = ctx.createRadialGradient(b.x,b.y,1, b.x,b.y,10);
-      g.addColorStop(0,'#fff');
-      g.addColorStop(.5,col);
-      g.addColorStop(1, '#440044');
+      g.addColorStop(0,'#fff'); g.addColorStop(.5,col); g.addColorStop(1,'#440044');
       ctx.fillStyle=g;
       ctx.beginPath(); ctx.arc(b.x, b.y, 10, 0, Math.PI*2); ctx.fill();
     }else{
-      const g = ctx.createRadialGradient(b.x,b.y,1, b.x,b.y,8);
+      const g = ctx.createRadialGradient(b.x,b.y,1, b.x,b.y,sz);
       g.addColorStop(0,'#fff');
-      g.addColorStop(.5,col);
-      g.addColorStop(1,'#ff9800');
+      g.addColorStop(.55, col);
+      g.addColorStop(1, b.rainbow ? '#222' : '#ff9800');
       ctx.fillStyle=g;
-      ctx.beginPath(); ctx.arc(b.x, b.y, 8, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle='rgba(255,235,59,.3)';
-      ctx.beginPath(); ctx.arc(b.x, b.y+12, 5, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(b.x, b.y, sz, 0, Math.PI*2); ctx.fill();
+      // 後ろの尾
+      ctx.fillStyle = `rgba(255,235,59,${b.rainbow?.5:.3})`;
+      const tailY = b.y + sz*1.5;
+      ctx.beginPath(); ctx.arc(b.x, tailY, sz*.6, 0, Math.PI*2); ctx.fill();
+      // Lv4+ で十字グレア
+      if(b.lv >= 4){
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(b.x-sz*1.4, b.y); ctx.lineTo(b.x+sz*1.4, b.y);
+        ctx.moveTo(b.x, b.y-sz*1.4); ctx.lineTo(b.x, b.y+sz*1.4);
+        ctx.stroke();
+      }
     }
   });
   ctx.shadowBlur = 0;

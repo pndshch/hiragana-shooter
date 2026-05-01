@@ -32,18 +32,74 @@
     font-size:2.2rem;color:#ffeb3b;text-shadow:0 0 18px #ff6b6b,0 4px 0 #c0392b;
     pointer-events:none;opacity:0;transition:opacity .25s,transform .25s;z-index:5;
   }
-  #combo.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1);
-    animation:comboPop .55s ease;}
+  #combo.show{opacity:1;animation:comboPop .55s ease;}
   @keyframes comboPop{
     0%   {transform:translateX(-50%) scale(.5) rotate(-8deg);}
     60%  {transform:translateX(-50%) scale(1.2) rotate(4deg);}
     100% {transform:translateX(-50%) scale(1)  rotate(0);}
   }
 
-  /* ───── START SCREEN ───── */
+  /* ───── WORD CHALLENGE ───── */
+  #wcBanner{
+    position:fixed;top:calc(env(safe-area-inset-top,0) + 56px);
+    left:50%;transform:translateX(-50%);
+    background:rgba(0,0,0,.78);border:3px solid #ffd700;border-radius:22px;
+    padding:10px 18px;display:flex;align-items:center;gap:12px;
+    z-index:6;box-shadow:0 0 28px rgba(255,215,0,.35);
+    animation:wcAppear .4s cubic-bezier(.175,.885,.32,1.275);
+  }
+  #wcBanner.hidden{display:none;}
+  @keyframes wcAppear{0%{transform:translateX(-50%) translateY(-30px);opacity:0;}100%{transform:translateX(-50%) translateY(0);opacity:1;}}
+  .wc-emoji{font-size:2.2rem;line-height:1;animation:bob 1.5s ease-in-out infinite;}
+  .wc-slots{display:flex;gap:5px;}
+  .wc-slot{
+    width:34px;height:38px;border:2.5px dashed #888;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.4rem;color:#888;font-weight:bold;
+  }
+  .wc-slot.filled{border-style:solid;border-color:#ffd700;
+    background:linear-gradient(135deg,#ffd700,#ff9f43);
+    color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);
+    animation:slotFill .4s ease;}
+  @keyframes slotFill{0%{transform:scale(.4);}60%{transform:scale(1.4) rotate(8deg);}100%{transform:scale(1);}}
+  .wc-timer{width:60px;height:6px;background:rgba(255,255,255,.2);border-radius:3px;overflow:hidden;}
+  .wc-timer-bar{height:100%;background:linear-gradient(90deg,#ffd700,#ff5722);width:100%;
+    transition:width .1s linear;}
+
+  /* ───── MIC BUTTON ───── */
+  #micBtn{
+    position:fixed;
+    bottom:calc(env(safe-area-inset-bottom,0) + 22px);right:18px;
+    width:62px;height:62px;border-radius:50%;
+    background:rgba(0,0,0,.55);color:#fff;
+    font-size:1.7rem;cursor:pointer;z-index:7;
+    border:2.5px solid rgba(255,255,255,.3);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    transition:transform .15s;
+  }
+  #micBtn:active{transform:scale(.9);}
+  #micBtn.active{
+    background:linear-gradient(135deg,#ff6b6b,#e84393);
+    border-color:#fff;
+    animation:micPulse 1.2s ease-in-out infinite;
+  }
+  #micBtn.unsupported{display:none;}
+  @keyframes micPulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(255,107,107,.7);}
+    50%   {box-shadow:0 0 0 16px rgba(255,107,107,0);}
+  }
+  #micHint{
+    position:fixed;bottom:calc(env(safe-area-inset-bottom,0) + 95px);right:18px;
+    background:rgba(0,0,0,.7);color:#fff;font-size:.78rem;
+    padding:5px 10px;border-radius:10px;z-index:7;pointer-events:none;
+    opacity:0;transition:opacity .25s;max-width:160px;text-align:right;line-height:1.3;
+  }
+  #micHint.show{opacity:1;}
+
+  /* ───── OVERLAYS ───── */
   .overlay{
     position:fixed;inset:0;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:22px;
+    align-items:center;justify-content:center;gap:20px;
     background:radial-gradient(circle at 50% 30%,#3a1c71 0%,#0a0a2e 80%);
     z-index:10;text-align:center;padding:24px;
   }
@@ -55,9 +111,11 @@
     text-shadow:0 4px 0 rgba(0,0,0,.25);line-height:1.15;
     animation:bob 2s ease-in-out infinite;
   }
-  .sub{font-size:1.05rem;color:#ddd;line-height:1.8;
+  .sub{font-size:.98rem;color:#ddd;line-height:1.7;
     background:rgba(255,255,255,.08);border-radius:18px;
     padding:14px 22px;max-width:340px;}
+  .feat-list{font-size:.85rem;text-align:left;line-height:1.85;}
+  .feat-list span{color:#ffd700;font-weight:bold;}
   .big-btn{
     background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;
     border:none;border-radius:30px;padding:18px 44px;
@@ -85,6 +143,22 @@
     animation:twinkle linear infinite;}
   @keyframes twinkle{0%,100%{opacity:.2}50%{opacity:1}}
   @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+
+  /* ───── WORD COMPLETE BURST ───── */
+  #wcBurst{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    z-index:8;pointer-events:none;opacity:0;transition:opacity .3s;
+  }
+  #wcBurst.show{opacity:1;animation:wcBurst .9s ease forwards;}
+  #wcBurst .b-emoji{font-size:8rem;}
+  #wcBurst .b-word {font-size:3rem;color:#ffd700;text-shadow:0 0 20px #ff5722,0 4px 0 #b5154d;font-weight:bold;margin-top:8px;}
+  @keyframes wcBurst{
+    0%  {opacity:0;transform:scale(.3);}
+    20% {opacity:1;transform:scale(1.2);}
+    70% {opacity:1;transform:scale(1);}
+    100%{opacity:0;transform:scale(1.4);}
+  }
+  .wcb-content{display:flex;flex-direction:column;align-items:center;}
 </style>
 </head>
 <body>
@@ -102,13 +176,34 @@
 </div>
 <div id="combo"></div>
 
+<!-- Word challenge banner -->
+<div id="wcBanner" class="hidden">
+  <div class="wc-emoji" id="wcEmoji">🍎</div>
+  <div class="wc-slots" id="wcSlots"></div>
+  <div class="wc-timer"><div class="wc-timer-bar" id="wcTimerBar"></div></div>
+</div>
+
+<!-- Word complete burst -->
+<div id="wcBurst">
+  <div class="wcb-content">
+    <div class="b-emoji" id="bEmoji">🍎</div>
+    <div class="b-word"  id="bWord">りんご</div>
+  </div>
+</div>
+
+<!-- Mic button (voice mode toggle) -->
+<button id="micBtn" class="unsupported" onclick="toggleVoice()">🎤</button>
+<div id="micHint">ボイスモード ON<br>こえで「あ」と いってみて！</div>
+
 <!-- Start screen -->
 <div id="startOverlay" class="overlay">
   <div class="ttl">ひらがな<br>シューター 🚀</div>
-  <div class="sub">
-    🚀を うごかして<br>
-    おちてくる ひらがなを <strong>うってね！</strong><br>
-    あたると おとが でるよ 🔊
+  <div class="sub feat-list">
+    🚀<span>ロケットが</span>じどうで うつよ！<br>
+    🎯<span>ひらがな</span>を あてると おとが でる<br>
+    📝<span>ワードチャレンジ</span>でボーナス！<br>
+    👹<span>ボス</span>を たおして ハートGET 💖<br>
+    🎤<span>マイクボタン</span>で こえでも あそべる！
   </div>
   <button class="big-btn" onclick="startGame()">▶ はじめる！</button>
   <div class="hi-score" id="bestScore">ハイスコア: 0</div>
@@ -129,7 +224,7 @@
 
 <script>
 // ============================================================
-//  HIRAGANA DATA (uses pre-recorded audio files)
+//  HIRAGANA DATA
 // ============================================================
 const HIRAGANA = [
   {c:'あ',g:1},{c:'い',g:1},{c:'う',g:1},{c:'え',g:1},{c:'お',g:1},
@@ -144,7 +239,6 @@ const HIRAGANA = [
   {c:'わ',g:10},{c:'を',g:10},{c:'ん',g:10},
 ];
 
-// Group color palette (for hiragana bubbles)
 const GROUP_COLORS = {
   1:['#ff7675','#d63031'], 2:['#fd79a8','#e84393'], 3:['#fdcb6e','#f39c12'],
   4:['#55efc4','#00b894'], 5:['#74b9ff','#0984e3'], 6:['#a29bfe','#6c5ce7'],
@@ -152,23 +246,69 @@ const GROUP_COLORS = {
   10:['#48dbfb','#341f97'],
 };
 
+// Words for challenge mode (all chars are basic hiragana, audio file = w_<sk>.m4a)
+const WORDS = [
+  {w:'あり',  e:'🐜', sk:'あ'},
+  {w:'いぬ',  e:'🐶', sk:'い'},
+  {w:'うし',  e:'🐮', sk:'う'},
+  {w:'かに',  e:'🦀', sk:'か'},
+  {w:'くま',  e:'🐻', sk:'く'},
+  {w:'さかな',e:'🐟', sk:'さ'},
+  {w:'すいか',e:'🍉', sk:'す'},
+  {w:'そら',  e:'☁️', sk:'そ'},
+  {w:'たこ',  e:'🐙', sk:'た'},
+  {w:'とら',  e:'🐯', sk:'と'},
+  {w:'ねこ',  e:'🐱', sk:'ね'},
+  {w:'はな',  e:'🌸', sk:'は'},
+  {w:'ふね',  e:'⛵', sk:'ふ'},
+  {w:'ほし',  e:'⭐', sk:'ほ'},
+  {w:'むし',  e:'🐛', sk:'む'},
+  {w:'もも',  e:'🍑', sk:'も'},
+  {w:'ゆき',  e:'❄️', sk:'ゆ'},
+  {w:'わに',  e:'🐊', sk:'わ'},
+];
+
 // ============================================================
-//  AUDIO
+//  AUDIO  (with iOS unlock)
 // ============================================================
 const _audioCache = {};
+let _audioUnlocked = false;
 function getAudio(path){
   if(!_audioCache[path]){
-    const a=new Audio(path); a.preload='auto'; _audioCache[path]=a;
+    const a=new Audio(path); a.preload='auto';
+    a.playsInline = true;
+    _audioCache[path]=a;
   }
   return _audioCache[path];
 }
+// Pre-prime all audio elements on first user gesture (iOS requirement)
+function unlockAllAudio(){
+  if(_audioUnlocked) return;
+  _audioUnlocked = true;
+  HIRAGANA.forEach(h=>{
+    const a = getAudio(`audio/${encodeURIComponent(h.c)}.m4a`);
+    a.muted = true;
+    a.play().then(()=>{ a.pause(); a.currentTime=0; a.muted=false; }).catch(()=>{a.muted=false;});
+  });
+  WORDS.forEach(w=>{
+    const a = getAudio(`audio/w_${encodeURIComponent(w.sk)}.m4a`);
+    a.muted = true;
+    a.play().then(()=>{ a.pause(); a.currentTime=0; a.muted=false; }).catch(()=>{a.muted=false;});
+  });
+}
+
 function speakChar(char){
   const a = getAudio(`audio/${encodeURIComponent(char)}.m4a`);
   a.currentTime = 0;
   a.play().catch(()=>{});
 }
+function speakWord(sk){
+  const a = getAudio(`audio/w_${encodeURIComponent(sk)}.m4a`);
+  a.currentTime = 0;
+  a.play().catch(()=>{});
+}
 
-// Web Audio for SFX
+// SFX via Web Audio
 let actx=null;
 function getCtx(){ if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)(); return actx; }
 function sfx(type){
@@ -179,7 +319,7 @@ function sfx(type){
       o.connect(g); g.connect(ctx.destination);
       o.type='square'; o.frequency.setValueAtTime(880,ctx.currentTime);
       o.frequency.exponentialRampToValueAtTime(220,ctx.currentTime+.08);
-      g.gain.setValueAtTime(.06,ctx.currentTime);
+      g.gain.setValueAtTime(.05,ctx.currentTime);
       g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.1);
       o.start(); o.stop(ctx.currentTime+.1);
     }else if(type==='hit'){
@@ -188,7 +328,7 @@ function sfx(type){
         o.connect(g); g.connect(ctx.destination);
         o.type='sine'; o.frequency.value=f;
         const t=ctx.currentTime+d;
-        g.gain.setValueAtTime(.18,t);
+        g.gain.setValueAtTime(.16,t);
         g.gain.exponentialRampToValueAtTime(.001,t+.2);
         o.start(t); o.stop(t+.2);
       });
@@ -210,12 +350,41 @@ function sfx(type){
         g.gain.exponentialRampToValueAtTime(.001,t+.4);
         o.start(t); o.stop(t+.4);
       });
+    }else if(type==='heart'){
+      [[660,0],[880,.08],[1100,.16]].forEach(([f,d])=>{
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type='triangle'; o.frequency.value=f;
+        const t=ctx.currentTime+d;
+        g.gain.setValueAtTime(.2,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.25);
+        o.start(t); o.stop(t+.25);
+      });
+    }else if(type==='wordComplete'){
+      [[523,0],[659,.1],[784,.2],[1047,.3]].forEach(([f,d])=>{
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type='sine'; o.frequency.value=f;
+        const t=ctx.currentTime+d;
+        g.gain.setValueAtTime(.22,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.35);
+        o.start(t); o.stop(t+.35);
+      });
+    }else if(type==='zap'){
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type='sawtooth';
+      o.frequency.setValueAtTime(1500,ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(300,ctx.currentTime+.18);
+      g.gain.setValueAtTime(.1,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.18);
+      o.start(); o.stop(ctx.currentTime+.18);
     }
   }catch(_){}
 }
 
 // ============================================================
-//  STARFIELD BACKGROUND (CSS)
+//  STARFIELD
 // ============================================================
 (function(){
   const layer=document.getElementById('stars');
@@ -232,13 +401,11 @@ function sfx(type){
 })();
 
 // ============================================================
-//  GAME
+//  CANVAS
 // ============================================================
 const cvs = document.getElementById('cvs');
 const ctx = cvs.getContext('2d');
-
-let DPR = Math.min(window.devicePixelRatio||1, 2);
-let W=0, H=0;
+let DPR=1, W=0, H=0;
 
 function resize(){
   DPR = Math.min(window.devicePixelRatio||1, 2);
@@ -253,7 +420,9 @@ function resize(){
 window.addEventListener('resize', resize);
 resize();
 
-// State
+// ============================================================
+//  GAME STATE
+// ============================================================
 let running=false, gameOver=false;
 let score=0, combo=0, comboTimer=0, lives=3;
 let lastTime=0, lastSpawn=0, lastShot=0;
@@ -263,15 +432,28 @@ document.getElementById('bestScore').textContent = `ハイスコア: ${bestScore
 
 const ship = { x:0, y:0, w:60, h:60, targetX:0 };
 const bullets   = [];
-const enemies   = [];   // hiragana
+const enemies   = [];
 const particles = [];
-const popups    = [];   // floating "+10" texts
+const popups    = [];
+const powerups  = [];
 
-// Difficulty curves (functions of elapsedTime in seconds)
-function spawnInterval(t){ return Math.max(450, 1500 - t*15); }
-function fallSpeed(t){     return 50 + Math.min(t*2.0, 110); }
+// Word challenge state
+let wc = null; // {word,e,sk,slots:[{c,filled}], timer, total}
+let nextWcAt = 18; // first word challenge ~18s in
+let killCount = 0;
 
-// ── INPUT ─────────────────────────────────────────────
+// Boss state
+let nextBossKill = 8; // every 8 normal kills, spawn one boss
+
+// Camera shake
+let shake = 0;
+
+function spawnInterval(t){ return Math.max(420, 1500 - t*16); }
+function fallSpeed(t){     return 55 + Math.min(t*2.0, 130); }
+
+// ============================================================
+//  INPUT
+// ============================================================
 const keys = {};
 window.addEventListener('keydown', e=>{
   keys[e.key]=true;
@@ -282,31 +464,32 @@ window.addEventListener('keyup', e=>{ keys[e.key]=false; });
 cvs.addEventListener('mousemove', e=>{ if(running) ship.targetX = e.clientX; });
 cvs.addEventListener('touchstart', e=>{
   e.preventDefault();
-  if(running) ship.targetX = e.touches[0].clientX;
+  if(running && e.touches[0]) ship.targetX = e.touches[0].clientX;
 }, {passive:false});
 cvs.addEventListener('touchmove', e=>{
   e.preventDefault();
-  if(running) ship.targetX = e.touches[0].clientX;
+  if(running && e.touches[0]) ship.targetX = e.touches[0].clientX;
 }, {passive:false});
 
-// ── GAME CONTROL ──────────────────────────────────────
+// ============================================================
+//  GAME CONTROL
+// ============================================================
 function startGame(){
-  // Unlock audio context (for mobile)
+  unlockAllAudio();
   try{ getCtx().resume(); }catch(_){}
 
   document.getElementById('startOverlay').classList.add('hidden');
   document.getElementById('overOverlay').classList.add('hidden');
+  document.getElementById('wcBanner').classList.add('hidden');
 
-  bullets.length = 0;
-  enemies.length = 0;
-  particles.length = 0;
-  popups.length = 0;
-
-  score = 0;
-  combo = 0;
-  comboTimer = 0;
+  bullets.length = enemies.length = particles.length = popups.length = powerups.length = 0;
+  score = combo = comboTimer = 0;
   lives = 3;
   elapsedTime = 0;
+  killCount = 0;
+  nextWcAt = 18;
+  nextBossKill = 8;
+  wc = null;
   lastSpawn = lastShot = lastTime = performance.now();
 
   ship.x = ship.targetX = W/2;
@@ -326,6 +509,7 @@ function backToStart(){
 function endGame(){
   running = false;
   gameOver = true;
+  hideWordChallenge();
   sfx('gameover');
 
   const isNewBest = score > bestScore;
@@ -345,10 +529,10 @@ function endGame(){
 
 function updateHUD(){
   document.getElementById('score').textContent = `⭐ ${score}`;
-  document.getElementById('lives').textContent = '❤️'.repeat(Math.max(0,lives)) + '🖤'.repeat(Math.max(0,3-lives));
+  const heartCount = Math.max(0, Math.min(5, lives));
+  document.getElementById('lives').textContent = '❤️'.repeat(heartCount) + '🖤'.repeat(Math.max(0,3-heartCount));
 }
 
-// ── COMBO POPUP ───────────────────────────────────────
 function showCombo(){
   if(combo<2) return;
   const el = document.getElementById('combo');
@@ -360,7 +544,186 @@ function showCombo(){
   showCombo._t = setTimeout(()=> el.classList.remove('show'), 1100);
 }
 
-// ── UPDATE ────────────────────────────────────────────
+// ============================================================
+//  WORD CHALLENGE
+// ============================================================
+function startWordChallenge(){
+  if(wc) return;
+  const word = WORDS[(Math.random()*WORDS.length)|0];
+  wc = {
+    word: word.w,
+    emoji: word.e,
+    sk: word.sk,
+    slots: [...word.w].map(c=>({c, filled:false})),
+    timer: 14,         // seconds
+    total: 14,
+  };
+
+  const banner = document.getElementById('wcBanner');
+  banner.classList.remove('hidden');
+  document.getElementById('wcEmoji').textContent = wc.emoji;
+  const slotsDiv = document.getElementById('wcSlots');
+  slotsDiv.innerHTML = '';
+  wc.slots.forEach(s=>{
+    const d = document.createElement('div');
+    d.className = 'wc-slot';
+    d.textContent = '?';
+    slotsDiv.appendChild(d);
+  });
+  document.getElementById('wcTimerBar').style.width = '100%';
+}
+
+function tryFillSlot(char){
+  if(!wc) return false;
+  const idx = wc.slots.findIndex(s => !s.filled && s.c === char);
+  if(idx < 0) return false;
+  wc.slots[idx].filled = true;
+  // Update UI
+  const slotsDiv = document.getElementById('wcSlots');
+  const el = slotsDiv.children[idx];
+  el.classList.remove('filled'); void el.offsetWidth;
+  el.classList.add('filled');
+  el.textContent = char;
+  // All filled?
+  if(wc.slots.every(s=>s.filled)) completeWordChallenge();
+  return true;
+}
+
+function completeWordChallenge(){
+  const bonus = 200;
+  score += bonus;
+  updateHUD();
+  popups.push({x:W/2, y:H/3, text:`+${bonus} ワードボーナス！`, life:2.0, big:true});
+
+  // Show burst
+  const burst = document.getElementById('wcBurst');
+  document.getElementById('bEmoji').textContent = wc.emoji;
+  document.getElementById('bWord').textContent  = wc.word;
+  burst.classList.remove('show'); void burst.offsetWidth;
+  burst.classList.add('show');
+  setTimeout(()=>burst.classList.remove('show'), 900);
+
+  sfx('wordComplete');
+  setTimeout(()=>speakWord(wc.sk), 300);
+
+  hideWordChallenge();
+  // Schedule next
+  nextWcAt = elapsedTime + 22 + Math.random()*10;
+}
+
+function failWordChallenge(){
+  hideWordChallenge();
+  nextWcAt = elapsedTime + 18 + Math.random()*8;
+}
+
+function hideWordChallenge(){
+  wc = null;
+  document.getElementById('wcBanner').classList.add('hidden');
+}
+
+// ============================================================
+//  VOICE MODE
+// ============================================================
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+let speechRec = null;
+let voiceMode = false;
+
+if(SpeechRec){
+  document.getElementById('micBtn').classList.remove('unsupported');
+}
+
+function toggleVoice(){
+  if(!SpeechRec) return;
+  unlockAllAudio();
+  try{ getCtx().resume(); }catch(_){}
+  voiceMode = !voiceMode;
+  const btn = document.getElementById('micBtn');
+  const hint = document.getElementById('micHint');
+  btn.classList.toggle('active', voiceMode);
+  if(voiceMode){
+    hint.textContent = 'こえで「あ」「いぬ」など よんでみて！';
+    hint.classList.add('show');
+    setTimeout(()=>hint.classList.remove('show'), 3500);
+    startSpeechRec();
+  }else{
+    hint.classList.remove('show');
+    stopSpeechRec();
+  }
+}
+
+function startSpeechRec(){
+  if(speechRec) return;
+  try{
+    speechRec = new SpeechRec();
+    speechRec.lang = 'ja-JP';
+    speechRec.continuous = true;
+    speechRec.interimResults = true;
+    speechRec.maxAlternatives = 3;
+    speechRec.onresult = (e) => {
+      for(let i = e.resultIndex; i < e.results.length; i++){
+        const r = e.results[i];
+        for(let j = 0; j < r.length; j++){
+          handleVoiceText(r[j].transcript);
+        }
+      }
+    };
+    speechRec.onerror = ()=>{};
+    speechRec.onend = ()=>{
+      // Auto restart while voiceMode is on
+      if(voiceMode){
+        try{ speechRec.start(); }catch(_){}
+      }
+    };
+    speechRec.start();
+  }catch(_){
+    voiceMode = false;
+    document.getElementById('micBtn').classList.remove('active');
+  }
+}
+function stopSpeechRec(){
+  if(speechRec){
+    try{ speechRec.stop(); }catch(_){}
+    speechRec = null;
+  }
+}
+
+const _voiceSeen = new Set();
+function handleVoiceText(text){
+  if(!running || !text) return;
+  // katakana → hiragana
+  const hira = text.replace(/[ァ-ン]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+  // Each character becomes a one-shot voice command
+  for(const ch of hira){
+    if(!/[ぁ-ん]/.test(ch)) continue;
+    const key = `${ch}_${Date.now()/200|0}`;
+    if(_voiceSeen.has(key)) continue;
+    _voiceSeen.add(key);
+    if(_voiceSeen.size > 100) _voiceSeen.clear();
+    voiceTarget(ch);
+  }
+}
+
+function voiceTarget(char){
+  // Find first un-targeted falling enemy that matches
+  const target = enemies.find(e => e.c === char && !e.voiceTargeted);
+  if(!target) return;
+  target.voiceTargeted = true;
+  // Spawn a homing zap from rocket
+  bullets.push({
+    x: ship.x, y: ship.y - 30,
+    vx: 0, vy: -200,
+    homing: true,
+    target,
+    speed: 1100,
+    color: '#ff44ff',
+    homingSpark: true,
+  });
+  sfx('zap');
+}
+
+// ============================================================
+//  UPDATE
+// ============================================================
 function update(dt){
   elapsedTime += dt;
 
@@ -368,15 +731,13 @@ function update(dt){
   if(keys['ArrowLeft']  || keys['a'] || keys['A']) ship.targetX -= 380*dt;
   if(keys['ArrowRight'] || keys['d'] || keys['D']) ship.targetX += 380*dt;
   ship.targetX = Math.max(35, Math.min(W-35, ship.targetX));
-
-  // Smooth follow
   ship.x += (ship.targetX - ship.x) * Math.min(1, dt*16);
   ship.y = H - 90;
 
   // Auto-shoot
   const now = performance.now();
   if(now - lastShot > 320){
-    bullets.push({ x:ship.x, y:ship.y - 30, vy:-720 });
+    bullets.push({ x:ship.x, y:ship.y - 30, vx:0, vy:-720 });
     lastShot = now;
     sfx('shoot');
   }
@@ -384,8 +745,34 @@ function update(dt){
   // Bullets
   for(let i=bullets.length-1;i>=0;i--){
     const b = bullets[i];
+    if(b.homing){
+      // Re-target if target died
+      if(!b.target || !enemies.includes(b.target)){
+        const cand = enemies.find(e=>!e.voiceTargeted) || enemies[0];
+        if(cand){ b.target = cand; cand.voiceTargeted = true; }
+        else { b.target = null; }
+      }
+      if(b.target){
+        const dx = b.target.x - b.x, dy = b.target.y - b.y;
+        const len = Math.hypot(dx,dy) || 1;
+        const sp = b.speed || 900;
+        b.vx = dx/len * sp;
+        b.vy = dy/len * sp;
+        // sparks
+        if(b.homingSpark && Math.random() < 0.4){
+          particles.push({
+            x:b.x + (Math.random()-.5)*6,
+            y:b.y + (Math.random()-.5)*6,
+            vx:(Math.random()-.5)*60,
+            vy:(Math.random()-.5)*60,
+            life:.4, r:2.5, color:'#ff44ff',
+          });
+        }
+      }
+    }
+    b.x += b.vx*dt;
     b.y += b.vy*dt;
-    if(b.y < -30) bullets.splice(i,1);
+    if(b.y < -30 || b.y > H+30 || b.x < -30 || b.x > W+30) bullets.splice(i,1);
   }
 
   // Spawn enemies
@@ -394,15 +781,24 @@ function update(dt){
     lastSpawn = now;
   }
 
+  // Spawn word challenge
+  if(!wc && elapsedTime >= nextWcAt) startWordChallenge();
+
+  // Update word challenge timer
+  if(wc){
+    wc.timer -= dt;
+    document.getElementById('wcTimerBar').style.width = `${(wc.timer/wc.total)*100}%`;
+    if(wc.timer <= 0) failWordChallenge();
+  }
+
   // Update enemies
-  const baseSpeed = fallSpeed(elapsedTime);
   for(let i=enemies.length-1;i>=0;i--){
     const e = enemies[i];
     e.y += e.vy * dt;
     e.rot += e.vr * dt;
+    if(e.boss) e.pulse = (e.pulse||0) + dt*4;
     if(e.y > H + 60){
       enemies.splice(i,1);
-      // missed: lose a life
       lives--;
       sfx('miss');
       shake = 18;
@@ -412,32 +808,58 @@ function update(dt){
     }
   }
 
-  // Collision: bullets ↔ enemies
+  // Bullet ↔ enemy collisions
   outer:
   for(let i=bullets.length-1;i>=0;i--){
     const b = bullets[i];
     for(let j=enemies.length-1;j>=0;j--){
       const e = enemies[j];
       const dx = b.x - e.x, dy = b.y - e.y;
-      if(dx*dx + dy*dy < e.r*e.r){
+      const r = e.r + (b.homing?6:0);
+      if(dx*dx + dy*dy < r*r){
         bullets.splice(i,1);
-        onHit(e);
-        enemies.splice(j,1);
+        const killed = damageEnemy(e, b.homing ? 3 : 1);
+        if(killed) enemies.splice(j,1);
         continue outer;
       }
     }
+  }
+
+  // Powerup update (heart drops)
+  for(let i=powerups.length-1;i>=0;i--){
+    const p = powerups[i];
+    p.y += p.vy*dt;
+    p.bob += dt*5;
+    p.x += Math.sin(p.bob) * 30 * dt;
+    // Collide with ship
+    const dx = p.x - ship.x, dy = p.y - ship.y;
+    if(dx*dx+dy*dy < 60*60){
+      if(p.type==='heart'){
+        lives = Math.min(5, lives+1);
+        updateHUD();
+        sfx('heart');
+        for(let k=0;k<14;k++){
+          const a = Math.random()*Math.PI*2, sp = 80+Math.random()*120;
+          particles.push({x:p.x,y:p.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,
+            life:.6, r:3, color:'#ff6b8a'});
+        }
+        popups.push({x:p.x, y:p.y, text:'+❤️', life:1.4});
+      }
+      powerups.splice(i,1);
+      continue;
+    }
+    if(p.y > H+50) powerups.splice(i,1);
   }
 
   // Particles
   for(let i=particles.length-1;i>=0;i--){
     const p = particles[i];
     p.x += p.vx*dt; p.y += p.vy*dt;
-    p.vy += 350*dt;     // gravity-ish
+    if(!p.flash) p.vy += 350*dt;
     p.life -= dt;
     if(p.life <= 0) particles.splice(i,1);
   }
-
-  // Score popups
+  // Popups
   for(let i=popups.length-1;i>=0;i--){
     const p = popups[i];
     p.y -= 60*dt;
@@ -445,10 +867,8 @@ function update(dt){
     if(p.life <= 0) popups.splice(i,1);
   }
 
-  // Camera shake decay
+  // Decay
   if(shake>0) shake = Math.max(0, shake - 60*dt);
-
-  // Combo timer
   if(combo>0){
     comboTimer -= dt;
     if(comboTimer<=0) combo = 0;
@@ -457,53 +877,86 @@ function update(dt){
 
 function spawnEnemy(){
   const h = HIRAGANA[(Math.random()*HIRAGANA.length)|0];
-  const r = 36;
+  const isBoss = killCount >= nextBossKill && Math.random() < 0.5;
+  const r = isBoss ? 64 : 36;
   enemies.push({
     c:h.c, g:h.g, r,
     x: r+10 + Math.random()*(W-r*2-20),
     y: -r,
-    vy: fallSpeed(elapsedTime) + Math.random()*40,
-    rot: 0, vr: (Math.random()-.5)*1.5,
+    vy: (isBoss ? fallSpeed(elapsedTime)*0.55 : fallSpeed(elapsedTime)) + Math.random()*40,
+    rot: 0,
+    vr: (Math.random()-.5) * (isBoss ? .4 : 1.5),
+    boss: isBoss,
+    hp: isBoss ? 3 : 1,
+    pulse: 0,
   });
+  if(isBoss) nextBossKill = killCount + 8 + ((Math.random()*4)|0);
 }
 
-function onHit(e){
+function damageEnemy(e, dmg=1){
+  e.hp -= dmg;
+  if(e.hp > 0){
+    // Show damage feedback (small particles, screen flash)
+    sfx('hit');
+    shake = Math.min(18, shake + 4);
+    const cols = GROUP_COLORS[e.g];
+    for(let i=0;i<10;i++){
+      const a = Math.random()*Math.PI*2, sp = 80+Math.random()*120;
+      particles.push({x:e.x,y:e.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,
+        life:.4, r:3, color: i%2?cols[0]:cols[1]});
+    }
+    return false; // not killed
+  }
+  // Killed
+  onKill(e);
+  return true;
+}
+
+function onKill(e){
   speakChar(e.c);
   sfx('hit');
+  killCount++;
+
+  // Word challenge progress
+  tryFillSlot(e.c);
 
   combo++;
   comboTimer = 2.4;
-  const gained = 10 * combo;
+  const base = e.boss ? 80 : 10;
+  const gained = base * combo;
   score += gained;
   updateHUD();
   if(combo>=2) showCombo();
 
-  // explosion particles
   const cols = GROUP_COLORS[e.g];
-  for(let i=0;i<24;i++){
+  const burst = e.boss ? 50 : 24;
+  for(let i=0;i<burst;i++){
     const a = Math.random()*Math.PI*2;
-    const sp= 120 + Math.random()*240;
+    const sp= 120 + Math.random()*(e.boss?340:240);
     particles.push({
       x:e.x, y:e.y,
       vx:Math.cos(a)*sp, vy:Math.sin(a)*sp,
       life: .55 + Math.random()*.45,
-      max: 1,
-      r: 2.5 + Math.random()*3,
+      r: 2.5 + Math.random()*(e.boss?5:3),
       color: i%2===0 ? cols[0] : cols[1],
     });
   }
-  // big white flash particle
-  particles.push({x:e.x,y:e.y,vx:0,vy:0,life:.18,r:e.r*1.3,color:'#fff',flash:true});
+  particles.push({x:e.x,y:e.y,vx:0,vy:0,life:.2,r:e.r*1.4,color:'#fff',flash:true});
+  popups.push({ x:e.x, y:e.y-20, text:`+${gained}`, life:1.1, big:e.boss });
 
-  popups.push({ x:e.x, y:e.y-20, text:`+${gained}`, life:1.1 });
+  shake = Math.min(28, shake + (e.boss ? 16 : 6));
 
-  shake = Math.min(20, shake + 6);
+  // Boss drops a heart
+  if(e.boss){
+    powerups.push({ x:e.x, y:e.y, vy:80, type:'heart', bob:Math.random()*Math.PI*2 });
+  }
 }
 
-// ── DRAW ──────────────────────────────────────────────
-let shake = 0;
+// ============================================================
+//  DRAW
+// ============================================================
 function draw(){
-  // Background gradient
+  // Background
   const grd = ctx.createLinearGradient(0,0,0,H);
   grd.addColorStop(0, '#0f0c29');
   grd.addColorStop(.5,'#3a1c71');
@@ -511,7 +964,6 @@ function draw(){
   ctx.fillStyle = grd;
   ctx.fillRect(0,0,W,H);
 
-  // Camera shake
   ctx.save();
   if(shake>0){
     const sx = (Math.random()-.5)*shake;
@@ -519,14 +971,26 @@ function draw(){
     ctx.translate(sx, sy);
   }
 
-  // Hiragana enemies (bubbles)
+  // Enemies
   enemies.forEach(e=>{
     const cols = GROUP_COLORS[e.g];
-    // Glow
-    ctx.shadowBlur  = 28;
+    let r = e.r;
+    if(e.boss) r = e.r + Math.sin(e.pulse)*4;
+
+    // Voice-target ring
+    if(e.voiceTargeted){
+      ctx.strokeStyle = '#ff44ff';
+      ctx.lineWidth = 4;
+      ctx.shadowBlur = 18; ctx.shadowColor = '#ff44ff';
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, r+10, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.shadowBlur  = e.boss ? 40 : 28;
     ctx.shadowColor = cols[0];
-    // Body
-    const grad = ctx.createRadialGradient(e.x-e.r*.3, e.y-e.r*.4, e.r*.1, e.x, e.y, e.r);
+    const grad = ctx.createRadialGradient(e.x-r*.3, e.y-r*.4, r*.1, e.x, e.y, r);
     grad.addColorStop(0, '#fff');
     grad.addColorStop(.25, cols[0]);
     grad.addColorStop(1, cols[1]);
@@ -535,27 +999,35 @@ function draw(){
     ctx.save();
     ctx.translate(e.x,e.y);
     ctx.rotate(e.rot);
-    ctx.arc(0,0, e.r, 0, Math.PI*2);
+    ctx.arc(0,0, r, 0, Math.PI*2);
     ctx.fill();
     ctx.restore();
-
     ctx.shadowBlur = 0;
 
     // Highlight
     ctx.fillStyle = 'rgba(255,255,255,.4)';
     ctx.beginPath();
-    ctx.arc(e.x-e.r*.35, e.y-e.r*.4, e.r*.3, 0, Math.PI*2);
+    ctx.arc(e.x-r*.35, e.y-r*.4, r*.3, 0, Math.PI*2);
     ctx.fill();
 
-    // Character (no rotation for readability)
+    // Char
     ctx.fillStyle = '#fff';
-    ctx.font = `bold ${(e.r*1.4)|0}px 'Hiragino Rounded Gothic Pro',sans-serif`;
+    ctx.font = `bold ${(r*1.4)|0}px 'Hiragino Rounded Gothic Pro',sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.shadowBlur = 6;
     ctx.shadowColor = 'rgba(0,0,0,.4)';
     ctx.fillText(e.c, e.x, e.y);
     ctx.shadowBlur = 0;
+
+    // Boss HP
+    if(e.boss && e.hp < 3){
+      const w = 60, h = 6;
+      ctx.fillStyle = 'rgba(0,0,0,.5)';
+      ctx.fillRect(e.x-w/2, e.y - r - 14, w, h);
+      ctx.fillStyle = '#ff5722';
+      ctx.fillRect(e.x-w/2, e.y - r - 14, w*(e.hp/3), h);
+    }
   });
 
   // Particles
@@ -578,24 +1050,42 @@ function draw(){
 
   // Bullets
   bullets.forEach(b=>{
-    ctx.shadowBlur=14; ctx.shadowColor='#ffeb3b';
-    const g = ctx.createRadialGradient(b.x,b.y,1, b.x,b.y,8);
-    g.addColorStop(0,'#fff');
-    g.addColorStop(.5,'#ffeb3b');
-    g.addColorStop(1,'#ff9800');
-    ctx.fillStyle=g;
-    ctx.beginPath(); ctx.arc(b.x, b.y, 8, 0, Math.PI*2); ctx.fill();
-    // tail
-    ctx.fillStyle='rgba(255,235,59,.3)';
-    ctx.beginPath(); ctx.arc(b.x, b.y+12, 5, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(b.x, b.y+22, 3, 0, Math.PI*2); ctx.fill();
+    const col = b.color || '#ffeb3b';
+    ctx.shadowBlur=14; ctx.shadowColor=col;
+    if(b.homing){
+      const g = ctx.createRadialGradient(b.x,b.y,1, b.x,b.y,10);
+      g.addColorStop(0,'#fff');
+      g.addColorStop(.5,col);
+      g.addColorStop(1, '#440044');
+      ctx.fillStyle=g;
+      ctx.beginPath(); ctx.arc(b.x, b.y, 10, 0, Math.PI*2); ctx.fill();
+    }else{
+      const g = ctx.createRadialGradient(b.x,b.y,1, b.x,b.y,8);
+      g.addColorStop(0,'#fff');
+      g.addColorStop(.5,col);
+      g.addColorStop(1,'#ff9800');
+      ctx.fillStyle=g;
+      ctx.beginPath(); ctx.arc(b.x, b.y, 8, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle='rgba(255,235,59,.3)';
+      ctx.beginPath(); ctx.arc(b.x, b.y+12, 5, 0, Math.PI*2); ctx.fill();
+    }
   });
   ctx.shadowBlur = 0;
 
-  // Ship (rocket emoji + thruster flame)
+  // Powerups (hearts)
+  powerups.forEach(p=>{
+    if(p.type==='heart'){
+      ctx.shadowBlur = 20; ctx.shadowColor = '#ff6b8a';
+      ctx.font = '38px serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('💖', p.x, p.y);
+      ctx.shadowBlur = 0;
+    }
+  });
+
+  // Ship
   if(running){
-    // Thruster
-    const flameH = 20 + Math.sin(performance.now()/40)*5;
+    const flameH = 22 + Math.sin(performance.now()/40)*5;
     const fg = ctx.createLinearGradient(ship.x, ship.y+18, ship.x, ship.y+18+flameH);
     fg.addColorStop(0, '#ffeb3b');
     fg.addColorStop(.5,'#ff9800');
@@ -608,7 +1098,18 @@ function draw(){
     ctx.closePath();
     ctx.fill();
 
-    // Rocket emoji
+    // Voice mode aura
+    if(voiceMode){
+      const r = 50 + Math.sin(performance.now()/300)*5;
+      ctx.strokeStyle = 'rgba(255,68,255,.5)';
+      ctx.lineWidth = 3;
+      ctx.shadowBlur = 18; ctx.shadowColor = '#ff44ff';
+      ctx.beginPath();
+      ctx.arc(ship.x, ship.y, r, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
     ctx.font = '60px serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -621,8 +1122,8 @@ function draw(){
   // Score popups
   popups.forEach(p=>{
     ctx.globalAlpha = Math.min(1, p.life);
-    ctx.fillStyle = '#ffd700';
-    ctx.font = `bold 26px sans-serif`;
+    ctx.fillStyle = p.big ? '#ff5722' : '#ffd700';
+    ctx.font = `bold ${p.big?34:26}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.shadowBlur = 8;
@@ -635,7 +1136,9 @@ function draw(){
   ctx.restore();
 }
 
-// ── MAIN LOOP ─────────────────────────────────────────
+// ============================================================
+//  MAIN LOOP
+// ============================================================
 function loop(now){
   const dt = Math.min((now-lastTime)/1000, 0.05);
   lastTime = now;
@@ -643,8 +1146,6 @@ function loop(now){
   draw();
   if(running) requestAnimationFrame(loop);
 }
-
-// First frame so background renders behind start screen
 draw();
 </script>
 </body>
